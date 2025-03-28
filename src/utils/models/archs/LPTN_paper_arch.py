@@ -281,7 +281,6 @@ class ResNet(nn.Module):
 def resnet32():
     return ResNet(BasicBlock, [10, 10, 10, 10, 10])
 
-
 model = resnet32() 
 
 def initialize_decoder(module):
@@ -333,7 +332,6 @@ class SegmentationModel(torch.nn.Module):
             )
 
     def forward(self, x,y=None):
-        """Sequentially pass `x` trough model`s encoder, decoder and heads"""
 
         self.check_input_shape(x)
 
