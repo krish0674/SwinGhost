@@ -338,27 +338,14 @@ class SegmentationModel(torch.nn.Module):
         self.check_input_shape(x)
 
         features = self.encoder(x)
-        # if self.fusion == True:
-        #     features1 = self.encoder2(x)
-            
-        #     f1 = features[-1]
-        #     #f2 = features1[-1]
-            
+
         for ind in range(len(features)):
             features[ind]=features[ind]
-        #     #     # features[ind] = (features[ind]+features1[ind])/2
-        #     #     # features[ind] = features1[ind]
-        #     #     features[ind] = torch.maximum(features[ind],features1[ind])
-        #     #     # features[ind] = torch.cat((features[ind],features1[ind]),1)
-    
+
         decoder_output = self.decoder(*features)
 
         masks = self.segmentation_head(decoder_output)
 
-        # if self.contrastive_head1 is not None:
-        #     f1= self.contrastive_head1(f1)
-        #     f2= self.contrastive_head2(f2)
-        #     return masks, f1,  f2
         return masks
 
     @torch.no_grad()
@@ -392,7 +379,6 @@ class Unet(SegmentationModel):
         super().__init__()
         self.fusion=fusion
         self.encoder = model
-        #self.encoder2 = model1
 
         self.decoder = UnetDecoder(
             encoder_channels=((in_channels,16,32, 64, 128, 256)),
