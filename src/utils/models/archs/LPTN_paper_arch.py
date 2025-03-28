@@ -374,7 +374,7 @@ class SegmentationModel(torch.nn.Module):
         x = self.forward(x)
 
         return x
-                         
+
 class Unet(SegmentationModel):
     def __init__(
         self,
@@ -388,7 +388,6 @@ class Unet(SegmentationModel):
         in_channels: int = 3,
         classes: int = 3,
         activation: Optional[Union[str, callable]] = None,
-        contrastive: bool = False,
     ):
         super().__init__()
         self.fusion=fusion
@@ -396,7 +395,7 @@ class Unet(SegmentationModel):
         #self.encoder2 = model1
 
         self.decoder = UnetDecoder(
-            encoder_channels=((3,16,32, 64, 128, 256)),
+            encoder_channels=((in_channels,16,32, 64, 128, 256)),
             decoder_channels=decoder_channels,
             n_blocks=encoder_depth,
             use_batchnorm=decoder_use_batchnorm,
