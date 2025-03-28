@@ -10,7 +10,7 @@ from utils.models.base_model import BaseModel
 from utils.models.losses import compute_gradient_penalty
 
 
-from .archs.LPTN_paper_arch import LPTNPaper
+from .archs.LPTN_paper_arch import Unet
 from .archs.discriminator_arch import Discriminator
 from .losses.losses import MSELoss, GANLoss
 
@@ -33,14 +33,14 @@ class LPTNModel(BaseModel):
         disc = disc.to(self.device)
 
         # creating model object
-        model = LPTNPaper(
-        nrb_low =self.nrb_low,
-        nrb_high =self.nrb_high,
-        # nrb_top =self.nrb_top,
-        num_high= 2,
-        device=self.device,
+        model = Unet(
+            activation='tanh',
+            # encoder_name=encoder, 
+            encoder_weights='imagenet', 
+            in_channels=3,
+            classes=3
         )
-        
+            
         # using model as generator
         self.net_g = model.to(self.device)
         self.print_network(self.net_g)
