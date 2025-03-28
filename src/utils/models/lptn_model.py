@@ -16,15 +16,12 @@ from .losses.losses import MSELoss, GANLoss
 
 loss_module = importlib.import_module('utils.models.losses')
 
-class LPTNModel(BaseModel):
+class Generator(BaseModel):
 
-    def __init__(self, loss_weight, device, lr, gan_type='standard', nrb_low=3, nrb_high=5, nrb_top=4):
-        super(LPTNModel, self).__init__(loss_weight, device, lr)
+    def __init__(self, loss_weight, device, lr, gan_type='standard',):
+        super(Generator, self).__init__(loss_weight, device, lr)
 
         self.gan_type = gan_type
-        self.nrb_low = nrb_low
-        self.nrb_high = nrb_high
-        self.nrb_top = nrb_top
 
         #define multiple here 
         # creating discriminator object

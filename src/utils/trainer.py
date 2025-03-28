@@ -6,7 +6,7 @@ import albumentations as A
 import os
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import DataLoader, Subset
-from .models.lptn_model import LPTNModel
+from .models.lptn_model import Generator
 
 import pandas as pd
 
@@ -14,9 +14,6 @@ def train(epochs,
           batch_size,
           dset,
           root_dir,
-          nrb_top = 4,
-          nrb_high = 5,
-          nrb_low = 3,
           device='cuda',
           lr=1e-4,
           loss_weight = 2000,
@@ -44,7 +41,7 @@ def train(epochs,
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     valid_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-    lptn_model = LPTNModel(loss_weight, device, lr, gan_type=gan_type, nrb_high=nrb_high, nrb_low=nrb_low, nrb_top=nrb_top)
+    lptn_model = Generator(loss_weight, device, lr, gan_type=gan_type)
 
     # a,b = train_dataset.__getitem__(0)
     # print("LLI image",a.shape)
@@ -132,9 +129,6 @@ def train_model(configs):
         configs['batch_size'],
         configs['dset'],
         configs['root_dir'],
-        configs['nrb_top'],
-        configs['nrb_high'],
-        configs['nrb_low'],
         configs['device'], 
         configs['lr'],
         configs['loss_weight'],
