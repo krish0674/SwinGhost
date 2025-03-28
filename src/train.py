@@ -14,9 +14,6 @@ def main(args):
         'loss_weight':args.loss_weight,
         'gan_type':args.gan_type,
         'sf_path' : args.sf_path,
-        'nrb_top' :args.nrb_top,
-        'nrb_high' : args.nrb_high,
-        'nrb_low' : args.nrb_low
     }
     wandb.login(key=args.key)
     wandb.init(project="LapLoss",
@@ -35,8 +32,5 @@ if __name__ == '__main__':
     parser.add_argument('--gan_type', type=str, required=False,default='vanilla')
     parser.add_argument('--key', type=str, required=False, default='6a0d17eac1d2d0d31cb4921178660ec68b3b40e5')
     parser.add_argument('--sf_path', type=str, required=False, default='./best_model_g.pth')
-    parser.add_argument('--nrb_low', type=int, required=False,default=3)
-    parser.add_argument('--nrb_high', type=int, required=False,default=3)
-    parser.add_argument('--nrb_top', type=int, required=False,default=3)
     arguments = parser.parse_args()
     main(arguments)
