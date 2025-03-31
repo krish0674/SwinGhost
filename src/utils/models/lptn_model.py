@@ -114,7 +114,7 @@ class Generator(BaseModel):
             p.requires_grad = False
 
         self.optimizer_g.zero_grad()
-        pyr_pred,self.output = self.net_g(self.LLI)
+        self.output = self.net_g(self.LLI)
 
         l_g_total = 0
         loss_dict = OrderedDict()
@@ -143,7 +143,7 @@ class Generator(BaseModel):
             p.requires_grad = True
 
         self.optimizer_d.zero_grad()
-        pry_pred,self.output = self.net_g(self.LLI)
+        self.output = self.net_g(self.LLI)
         
         #upadte each dicriminator 
 
@@ -179,7 +179,7 @@ class Generator(BaseModel):
     def test(self):
         self.net_g.eval()
         with torch.no_grad():
-            pyr_pred,self.output = self.net_g(self.LLI)
+            self.output = self.net_g(self.LLI)
         self.net_g.train()
 
     def nondist_validation(self, dataloader):
