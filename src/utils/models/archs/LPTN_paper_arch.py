@@ -240,7 +240,7 @@ class ResNet(nn.Module):
         self.in_planes = 16
         
 #         self.layer0 = self._make_layer(block, 3, num_blocks[0], stride=2)
-        self.conv1 = GhostModule(1, 16, kernel_size=3, stride=2)
+        self.conv1 = GhostModule(3, 16, kernel_size=3, stride=2)
         self.bn1 = nn.BatchNorm2d(16)
         self.layer1 = self._make_layer(block, 16, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2)
