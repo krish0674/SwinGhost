@@ -1,5 +1,5 @@
 import wandb
-from .dataloader import SICEGradTrain,SICEGradTest,SICEGradVal, SICEMixTrain,SICEMixVal, LOLTrain, get_training_augmentation, get_validation_augmentation, get_transform
+from .dataloader import SICEGradTrain,SICEGradTest,SICEGradVal, SICEMixTrain,SICEMixVal, LOLTrain, get_training_augmentation, get_validation_augmentation, get_transform,SICETrainDataset
 import torch
 from tqdm import tqdm as tqdm
 import albumentations as A
@@ -37,9 +37,17 @@ def train(epochs,
         print(high, low)
         train_dataset = LOLTrain(high_res_folder=high, low_res_folder=low, flag=0, augmentation=get_training_augmentation())
         val_dataset = LOLTrain(high_res_folder=high, low_res_folder=low, flag=1, augmentation=get_training_augmentation())
-    
+    if dset == 'sice':
+
+        train_dataset = SICETrainDataset(root_dir,augmentation=get_training_augmentation(), split_type="train", split_ratio=0.8,exposure_type=exposure)
+        val_dataset = SICETrainDataset(root_dir,augmentation=get_training_augmentation(), split_type="val", split_ratio=0.8)
+
+        print(f"Training dataset size: {len(train_dataset)}")
+        print(f"Validation dataset size: {len(val_dataset)}")
+
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     valid_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+
 
     lptn_model = Generator(loss_weight, device, lr, gan_type=gan_type)
 

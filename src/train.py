@@ -26,7 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, required=False, default=300)
     parser.add_argument('--root_dir', type=str, required=False)
     parser.add_argument('--device', type=str, required=False, default='cuda')
-    parser.add_argument('--dset', type=str, required=False, default='grad')
+    parser.add_argument('--dset', type=str, required=False, default='sice')
     parser.add_argument('--lr', type=float, required=False, default=1e-4)
     parser.add_argument('--loss_weight', type=float, required=False, default=3000)
     parser.add_argument('--gan_type', type=str, required=False,default='vanilla')
