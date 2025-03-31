@@ -39,7 +39,7 @@ def train(epochs,
         val_dataset = LOLTrain(high_res_folder=high, low_res_folder=low, flag=1, augmentation=get_training_augmentation())
     if dset == 'sice':
 
-        train_dataset = SICETrainDataset(root_dir,augmentation=get_training_augmentation(), split_type="train", split_ratio=0.8,exposure_type=exposure)
+        train_dataset = SICETrainDataset(root_dir,augmentation=get_training_augmentation(), split_type="train", split_ratio=0.8,exposure_type='both')
         val_dataset = SICETrainDataset(root_dir,augmentation=get_training_augmentation(), split_type="val", split_ratio=0.8)
 
         print(f"Training dataset size: {len(train_dataset)}")
