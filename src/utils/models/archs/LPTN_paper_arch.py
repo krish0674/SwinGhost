@@ -413,8 +413,8 @@ class ResNet(nn.Module):
         out = self.layer4(out); output.append(out)
         out = self.layer5(out); output.append(out)
 
-        for out in output:
-            print(out.shape)
+        # for out in output:
+        #     print(out.shape)
 
         return output
 
