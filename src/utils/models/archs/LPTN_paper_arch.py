@@ -1,3 +1,137 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Dummy DropPath replacement
+class DropPath(nn.Identity):
+    def __init__(self, drop_prob=0.):
+        super().__init__()
+
+# WindowAttention block
+class WindowAttention(nn.Module):
+    def __init__(self, dim, window_size, num_heads, qkv_bias=True, attn_drop=0., proj_drop=0.):
+        super().__init__()
+        self.dim = dim
+        self.window_size = window_size
+        self.num_heads = num_heads
+        head_dim = dim // num_heads
+        self.scale = head_dim ** -0.5
+
+        self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
+        self.attn_drop = nn.Dropout(attn_drop)
+        self.proj = nn.Linear(dim, dim)
+        self.proj_drop = nn.Dropout(proj_drop)
+
+    def forward(self, x):
+        B, N, C = x.shape
+        qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+        q, k, v = qkv[0], qkv[1], qkv[2]
+
+        attn = (q @ k.transpose(-2, -1)) * self.scale
+        attn = attn.softmax(dim=-1)
+        attn = self.attn_drop(attn)
+
+        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        x = self.proj(x)
+        x = self.proj_drop(x)
+        return x
+
+# SwinTransformerBlock
+class SwinTransformerBlock(nn.Module):
+    def __init__(self, dim, input_resolution, num_heads=8, window_size=7, 
+                 shift_size=0, mlp_ratio=4., qkv_bias=True, 
+                 drop=0., attn_drop=0., drop_path=0.):
+        super().__init__()
+        self.dim = dim
+        self.input_resolution = input_resolution
+        self.num_heads = num_heads
+        self.window_size = min(window_size, min(input_resolution))  
+        self.shift_size = shift_size
+        self.mlp_ratio = mlp_ratio
+
+        self.norm1 = nn.LayerNorm(dim)
+        self.attn = WindowAttention(
+            dim, window_size=self.window_size, 
+            num_heads=num_heads, qkv_bias=qkv_bias, 
+            attn_drop=attn_drop, proj_drop=drop
+        )
+
+        mlp_hidden_dim = int(dim * mlp_ratio)
+        self.mlp = nn.Sequential(
+            nn.Linear(dim, mlp_hidden_dim),
+            nn.GELU(),
+            nn.Dropout(drop),
+            nn.Linear(mlp_hidden_dim, dim),
+            nn.Dropout(drop)
+        )
+        self.norm2 = nn.LayerNorm(dim)
+        self.drop_path = DropPath(drop_path)
+
+    def forward(self, x):
+        H, W = self.input_resolution
+        B, L, C = x.shape
+        shortcut = x
+
+        x = self.norm1(x)
+        x = x.reshape(B, H, W, C)
+
+        x_windows, padding = self.window_partition(x)
+        x_windows = x_windows.view(-1, self.window_size * self.window_size, C)
+
+        attn_windows = self.attn(x_windows)
+        attn_windows = attn_windows.view(-1, self.window_size, self.window_size, C)
+        x = self.window_reverse(attn_windows, H, W, padding)
+        x = x.reshape(B, H * W, C)
+
+        x = shortcut + self.drop_path(x)
+        x = x + self.drop_path(self.mlp(self.norm2(x)))
+
+        return x
+
+    def window_partition(self, x):
+        B, H, W, C = x.shape
+        pad_h = (self.window_size - H % self.window_size) % self.window_size
+        pad_w = (self.window_size - W % self.window_size) % self.window_size
+
+        if pad_h > 0 or pad_w > 0:
+            x = F.pad(x, (0, 0, 0, pad_w, 0, pad_h))
+            B, H, W, C = x.shape
+
+        patch_h = H // self.window_size
+        patch_w = W // self.window_size
+
+        x = x.view(B, patch_h, self.window_size, patch_w, self.window_size, C)
+        windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, self.window_size, self.window_size, C)
+        return windows, (pad_h, pad_w)
+
+    def window_reverse(self, windows, H, W, padding):
+        pad_h, pad_w = padding
+        B = int(windows.shape[0] / ((H + pad_h) / self.window_size * (W + pad_w) / self.window_size))
+        x = windows.view(B, (H + pad_h) // self.window_size, (W + pad_w) // self.window_size, 
+                         self.window_size, self.window_size, -1)
+        x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, H + pad_h, W + pad_w, -1)
+
+        if pad_h > 0 or pad_w > 0:
+            x = x[:, :H, :W, :]
+        return x
+
+class WindowTransformerBlock2D(nn.Module):
+    def __init__(self, dim, resolution, num_heads=4, window_size=7):
+        super().__init__()
+        self.norm = nn.LayerNorm(dim)
+        self.attn = WindowAttention(
+            dim=dim, window_size=window_size, num_heads=num_heads
+        )
+        self.resolution = resolution  # (H, W)
+
+    def forward(self, x):
+        B, C, H, W = x.shape
+        assert (H, W) == self.resolution, f"Expected {(H, W)}, got {(x.shape[2], x.shape[3])}"
+        x_ = x.permute(0, 2, 3, 1).contiguous().view(B, H * W, C)  # (B, H*W, C)
+        x_ = self.attn(self.norm(x_))
+        x_ = x_.view(B, H, W, C).permute(0, 3, 1, 2)  # back to (B, C, H, W)
+        return x + x_
+
 from typing import Optional, Union, List
 import torch
 import torch.nn as nn
@@ -238,46 +372,53 @@ class ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes=10):
         super(ResNet, self).__init__()
         self.in_planes = 16
-        
-#         self.layer0 = self._make_layer(block, 3, num_blocks[0], stride=2)
+        self.use_transformer = [False, True, False, True, False, True]  # alternate layers
+
         self.conv1 = GhostModule(3, 16, kernel_size=3, stride=2)
         self.bn1 = nn.BatchNorm2d(16)
-        self.layer1 = self._make_layer(block, 16, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block, 64, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block, 128, num_blocks[3], stride=2)
-        self.layer5 = self._make_layer(block, 256, num_blocks[4], stride=2)
+
+        self.layer1 = self._make_layer(block, 16, num_blocks[0], stride=1, idx=1)
+        self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2, idx=2)
+        self.layer3 = self._make_layer(block, 64, num_blocks[2], stride=2, idx=3)
+        self.layer4 = self._make_layer(block, 128, num_blocks[3], stride=2, idx=4)
+        self.layer5 = self._make_layer(block, 256, num_blocks[4], stride=2, idx=5)
 
         self.linear = nn.Linear(64, num_classes)
         self.apply(_weights_init)
 
-    def _make_layer(self, block, planes, num_blocks, stride):
-        strides = [stride] + [1]*(num_blocks-1)
+    def _make_layer(self, block, planes, num_blocks, stride, idx):
+        strides = [stride] + [1] * (num_blocks - 1)
         layers = []
+
         for stride in strides:
             layers.append(block(self.in_planes, planes, stride))
             self.in_planes = planes * block.expansion
+
+        # If this index is selected, append the transformer block
+        if self.use_transformer[idx]:
+            # Input resolution after this layer
+            res = 256 // (2 ** idx)
+            layers.append(WindowTransformerBlock2D(planes,(res, res)))
+
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        output=[]
+        output = []
         output.append(x)
+
         out = F.relu(self.bn1(self.conv1(x)))
-        out = self.layer1(out)
-        output.append(out)
-        out = self.layer2(out)
-        output.append(out)
-        out = self.layer3(out)
-        output.append(out)
+        out = self.layer1(out); output.append(out)
+        out = self.layer2(out); output.append(out)
+        out = self.layer3(out); output.append(out)
+        out = self.layer4(out); output.append(out)
+        out = self.layer5(out); output.append(out)
 
-        out = self.layer4(out)
-        output.append(out)
-
-        out = self.layer5(out)
-        output.append(out)
+        for out in output:
+            print(out.shape)
 
         return output
-    
+
+# Example usage:
 def resnet32():
     return ResNet(BasicBlock, [10, 10, 10, 10, 10])
 
@@ -394,11 +535,6 @@ class Unet(SegmentationModel):
             kernel_size=3,
         )
 
-
         self.name = "u-{}".format(encoder_name)
         self.initialize()
-
-
-
-
 
