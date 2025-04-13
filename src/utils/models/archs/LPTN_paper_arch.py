@@ -409,6 +409,7 @@ class ResNet(nn.Module):
 
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out); output.append(out)
+        print(output.shape)
         out = self.layer2(out); output.append(out)
         out = self.layer3(out); output.append(out)
         out = self.layer4(out); output.append(out)
