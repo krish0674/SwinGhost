@@ -49,14 +49,14 @@ def train(epochs,
     valid_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
 
-    model = Unet(
+    lptn_model = Unet(
     activation='tanh',
     encoder_weights='imagenet', 
     in_channels=3,
     classes=3
     )
     print("Model parameters:")
-    print(sum(p.numel() for p in model.parameters()))
+    print(sum(p.numel() for p in lptn_model.parameters()))
     # a,b = train_dataset.__getitem__(0)
     # print("LLI image",a.shape)
     # print("HLI image",b.shape)
