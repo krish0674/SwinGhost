@@ -37,7 +37,7 @@ class Generator(BaseModel):
             in_channels=3,
             classes=3
         )
-            
+        print(self.device)
         # using model as generator
         self.net_g = model.to(self.device)
         self.print_network(self.net_g)
