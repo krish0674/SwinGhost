@@ -105,16 +105,18 @@ class Generator(BaseModel):
         """
         self.LLI = LLI.to(self.device)
         self.HLI = HLI.to(self.device)
-
+    
     def optimize_parameters(self, current_iter):
         torch.autograd.set_detect_anomaly(True)
 
         # optimize net_g
         for p in self.net_d.parameters():
             p.requires_grad = False
+        from torch.cuda.amp import autocast, GradScaler
 
         self.optimizer_g.zero_grad()
-        self.output = self.net_g(self.LLI)
+        with autocast():
+            self.output = self.net_g(self.LLI)
 
         l_g_total = 0
         loss_dict = OrderedDict()
