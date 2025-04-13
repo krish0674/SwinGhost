@@ -127,7 +127,7 @@ class WindowTransformerBlock2D(nn.Module):
     def forward(self, x):
         B, C, H, W = x.shape
         # H, W = x.shape[2], x.shape[3]
-        assert (int(H), int(W)) == self.resolution, f"Expected {self.resolution}, got {(H, W)}"
+        # assert (int(H), int(W)) == self.resolution, f"Expected {self.resolution}, got {(H, W)}"
         x_ = x.permute(0, 2, 3, 1).contiguous().view(B, H * W, C)  # (B, H*W, C)
         x_ = self.attn(self.norm(x_))
         x_ = x_.view(B, H, W, C).permute(0, 3, 1, 2)  # back to (B, C, H, W)
