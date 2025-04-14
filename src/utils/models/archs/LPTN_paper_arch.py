@@ -416,7 +416,7 @@ class ResNet(nn.Module):
 def resnet32():
     return ResNet(BasicBlock, [10, 10, 10, 10, 10]) 
 
-model = resnet32() 
+model = resnet32().to('cuda')
 
 def initialize_decoder(module):
     for m in module.modules():
