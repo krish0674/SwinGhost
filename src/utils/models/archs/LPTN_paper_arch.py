@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# Dummy DropPath replacement
 class DropPath(nn.Identity):
     def __init__(self, drop_prob=0.):
         super().__init__()
@@ -122,17 +121,14 @@ class WindowTransformerBlock2D(nn.Module):
         self.attn = WindowAttention(
             dim=dim, window_size=window_size, num_heads=num_heads
         )
-        self.resolution = resolution  # (H, W)
 
     def forward(self, x):
         B, C, H, W = x.shape
-        # H, W = x.shape[2], x.shape[3]
-        # assert (int(H), int(W)) == self.resolution, f"Expected {self.resolution}, got {(H, W)}"
+        H, W = x.shape[2], x.shape[3]
         x_ = x.permute(0, 2, 3, 1).contiguous().view(B, H * W, C)  # (B, H*W, C)
         x_ = self.attn(self.norm(x_))
         x_ = x_.view(B, H, W, C).permute(0, 3, 1, 2)  # back to (B, C, H, W)
-        return x + x_
-
+        return x_
 from typing import Optional, Union, List
 import torch
 import torch.nn as nn
@@ -372,34 +368,30 @@ class BasicBlock(nn.Module):
 class ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes=10):
         super(ResNet, self).__init__()
-        self.in_planes = 16
-        self.use_transformer = [False, True, False, False, False, True]  # alternate layers
+        self.in_planes = 8
+        self.use_transformer = [False, True, False, True, False, False]  # idx starts at 1
 
-        self.conv1 = GhostModule(3, 16, kernel_size=3, stride=2)
-        self.bn1 = nn.BatchNorm2d(16)
+        self.conv1 = GhostModule(3, 8, kernel_size=3, stride=2)
+        self.bn1 = nn.BatchNorm2d(8)
 
-        self.layer1 = self._make_layer(block, 16, num_blocks[0], stride=1, idx=1)
-        self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2, idx=2)
-        self.layer3 = self._make_layer(block, 64, num_blocks[2], stride=2, idx=3)
-        self.layer4 = self._make_layer(block, 128, num_blocks[3], stride=2, idx=4)
-        self.layer5 = self._make_layer(block, 256, num_blocks[4], stride=2, idx=5)
+        self.layer1 = self._make_layer(block, 8, stride=1, idx=1)
+        self.layer2 = self._make_layer(block, 16, stride=2, idx=2)
+        self.layer3 = self._make_layer(block, 32, stride=2, idx=3)
+        self.layer4 = self._make_layer(block, 64, stride=2, idx=4)
+        self.layer5 = self._make_layer(block, 128, stride=2, idx=5)
 
         self.linear = nn.Linear(64, num_classes)
         self.apply(_weights_init)
 
-    def _make_layer(self, block, planes, num_blocks, stride, idx):
-        strides = [stride] + [1] * (num_blocks - 1)
+    def _make_layer(self, block, planes, stride, idx):
         layers = []
 
-        for stride in strides:
-            layers.append(block(self.in_planes, planes, stride))
-            self.in_planes = planes * block.expansion
-
-        # If this index is selected, append the transformer block
         if self.use_transformer[idx]:
-            # Input resolution after this layer
-            res = 256 // (2 ** idx)
-            layers.append(WindowTransformerBlock2D(planes,(res, res)))
+            res = 608 // (2 ** (idx + 1))  # 608 input with initial conv1 having stride 2
+            layers.append(WindowTransformerBlock2D(self.in_planes, (res, res)))
+
+        layers.append(block(self.in_planes, planes, stride))
+        self.in_planes = planes * block.expansion
 
         return nn.Sequential(*layers)
 
@@ -414,14 +406,15 @@ class ResNet(nn.Module):
         out = self.layer4(out); output.append(out)
         out = self.layer5(out); output.append(out)
 
-        # for out in output:
-        #     print(out.shape)
+        for o in output:
+            print(o.shape)
 
         return output
 
 # Example usage:
 def resnet32():
-    return ResNet(BasicBlock, [10, 10, 10, 10, 10])
+    return ResNet(BasicBlock, [5, 5, 5, 5, 5])  # Just 1 block per layer
+
 
 model = resnet32() 
 
@@ -510,7 +503,7 @@ class Unet(SegmentationModel):
         encoder_weights: Optional[str] = "imagenet",
         fusion:bool=True,
         decoder_use_batchnorm: bool = True,
-        decoder_channels: List[int] = (256, 128, 64, 32, 16),
+        decoder_channels: List[int] = (128, 64,32, 16, 8),
         decoder_attention_type: Optional[str] = None,
         in_channels: int = 3,
         classes: int = 3,
@@ -521,7 +514,7 @@ class Unet(SegmentationModel):
         self.encoder = model
 
         self.decoder = UnetDecoder(
-            encoder_channels=((in_channels,16,32, 64, 128, 256)),
+            encoder_channels=((in_channels,8,16,32, 64, 128)),
             decoder_channels=decoder_channels,
             n_blocks=encoder_depth,
             use_batchnorm=decoder_use_batchnorm,
