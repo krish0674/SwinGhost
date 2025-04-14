@@ -370,7 +370,7 @@ class ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes=10):
         super(ResNet, self).__init__()
         self.in_planes = 16
-        self.use_transformer = [True, False, False, False, False, False]  # idx starts at 1
+        self.use_transformer = [True, False, True, False, False, False]  # idx starts at 1
 
         self.conv1 = GhostModule(3, 16, kernel_size=3, stride=2)
         self.bn1 = nn.BatchNorm2d(16)
@@ -407,8 +407,8 @@ class ResNet(nn.Module):
         out = self.layer4(out); output.append(out)
         out = self.layer5(out); output.append(out)
 
-        for o in output:
-            print(o.shape)
+        # for o in output:
+        #     print(o.shape)
 
         return output
 
