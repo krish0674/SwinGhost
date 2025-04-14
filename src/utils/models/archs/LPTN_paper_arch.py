@@ -38,7 +38,7 @@ class WindowAttention(nn.Module):
 # SwinTransformerBlock
 class SwinTransformerBlock(nn.Module):
     def __init__(self, dim, input_resolution, num_heads=8, window_size=7, 
-                 shift_size=0, mlp_ratio=4., qkv_bias=True, 
+                 shift_size=0, mlp_ratio=4., qkv_bias=False, 
                  drop=0., attn_drop=0., drop_path=0.):
         super().__init__()
         self.dim = dim
@@ -115,7 +115,7 @@ class SwinTransformerBlock(nn.Module):
         return x
 
 class WindowTransformerBlock2D(nn.Module):
-    def __init__(self, dim, resolution, num_heads=4, window_size=7):
+    def __init__(self, dim, resolution, num_heads=2, window_size=3):
         super().__init__()
         self.norm = nn.LayerNorm(dim)
         self.attn = WindowAttention(
@@ -129,6 +129,7 @@ class WindowTransformerBlock2D(nn.Module):
         x_ = self.attn(self.norm(x_))
         x_ = x_.view(B, H, W, C).permute(0, 3, 1, 2)  # back to (B, C, H, W)
         return x_
+    
 from typing import Optional, Union, List
 import torch
 import torch.nn as nn
