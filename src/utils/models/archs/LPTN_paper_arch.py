@@ -369,17 +369,17 @@ class BasicBlock(nn.Module):
 class ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes=10):
         super(ResNet, self).__init__()
-        self.in_planes = 8
+        self.in_planes = 16
         self.use_transformer = [True, False, False, False, False, False]  # idx starts at 1
 
-        self.conv1 = GhostModule(3, 8, kernel_size=3, stride=2)
-        self.bn1 = nn.BatchNorm2d(8)
+        self.conv1 = GhostModule(3, 16, kernel_size=3, stride=2)
+        self.bn1 = nn.BatchNorm2d(16)
 
-        self.layer1 = self._make_layer(block, 8, stride=1, idx=1)
-        self.layer2 = self._make_layer(block, 16, stride=2, idx=2)
-        self.layer3 = self._make_layer(block, 32, stride=2, idx=3)
-        self.layer4 = self._make_layer(block, 64, stride=2, idx=4)
-        self.layer5 = self._make_layer(block, 128, stride=2, idx=5)
+        self.layer1 = self._make_layer(block, 16, stride=1, idx=1)
+        self.layer2 = self._make_layer(block, 32, stride=2, idx=2)
+        self.layer3 = self._make_layer(block, 64, stride=2, idx=3)
+        self.layer4 = self._make_layer(block, 128, stride=2, idx=4)
+        self.layer5 = self._make_layer(block, 256, stride=2, idx=5)
 
         self.linear = nn.Linear(64, num_classes)
         self.apply(_weights_init)
@@ -504,7 +504,7 @@ class Unet(SegmentationModel):
         encoder_weights: Optional[str] = "imagenet",
         fusion:bool=True,
         decoder_use_batchnorm: bool = True,
-        decoder_channels: List[int] = (128, 64,32, 16, 8),
+        decoder_channels: List[int] = (256,128, 64,32, 16),
         decoder_attention_type: Optional[str] = None,
         in_channels: int = 3,
         classes: int = 3,
@@ -515,7 +515,7 @@ class Unet(SegmentationModel):
         self.encoder = model
 
         self.decoder = UnetDecoder(
-            encoder_channels=((in_channels,8,16,32, 64, 128)),
+            encoder_channels=((in_channels,16,32, 64, 128,256)),
             decoder_channels=decoder_channels,
             n_blocks=encoder_depth,
             use_batchnorm=decoder_use_batchnorm,

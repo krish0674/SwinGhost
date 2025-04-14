@@ -115,8 +115,8 @@ class Generator(BaseModel):
         from torch.cuda.amp import autocast, GradScaler
 
         self.optimizer_g.zero_grad()
-        with autocast():
-            self.output = self.net_g(self.LLI)
+        # with autocast():
+        self.output = self.net_g(self.LLI)
 
         l_g_total = 0
         loss_dict = OrderedDict()
