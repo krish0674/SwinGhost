@@ -29,7 +29,7 @@ def eval(root_dir, lr,loss_weight = 2000,gan_type = 'lsgan' ,device='cuda', nrb_
     # Create the DataLoader
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
-    lptn_model = Generator(loss_weight, device, lr, gan_type=gan_type)
+    lptn_model = Generator(loss_weight, device, lr, gan_type='hinge')
     # summary(lptn_model.net_g , input_size=(3, 608, 896))
     total_loss = []
     psnr_test,ssim_test, lpips_test,mssim_test = 0,0,0,0
