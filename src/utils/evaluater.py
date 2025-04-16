@@ -6,10 +6,8 @@ import os
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import DataLoader, Subset
-from .models.lptn_model import LPTNModel
+from .models.lptn_model import Generator
 # from torchsummary import summary
-
-
 
 
 def eval(root_dir, lr,loss_weight = 2000,gan_type = 'standard' ,device='cuda', nrb_top = 4, nrb_high = 5, nrb_low = 3,exposure='over',path='/kaggle/working/best_model_g.pth'):
@@ -31,7 +29,7 @@ def eval(root_dir, lr,loss_weight = 2000,gan_type = 'standard' ,device='cuda', n
     # Create the DataLoader
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
-    lptn_model = LPTNModel(loss_weight, device, lr, gan_type=gan_type, nrb_high=nrb_high, nrb_low=nrb_low, nrb_top=nrb_top,levels=[0,1,2],weights=[0.5,0.3,0.2])
+    lptn_model = Generator(loss_weight, device, lr, gan_type=gan_type, nrb_high=nrb_high, nrb_low=nrb_low, nrb_top=nrb_top,levels=[0,1,2],weights=[0.5,0.3,0.2])
     # summary(lptn_model.net_g , input_size=(3, 608, 896))
     total_loss = []
     psnr_test,ssim_test, lpips_test,mssim_test = 0,0,0,0
