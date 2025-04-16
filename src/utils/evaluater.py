@@ -55,7 +55,7 @@ def eval(root_dir, lr,loss_weight = 2000,gan_type = 'lsgan' ,device='cuda', nrb_
             
             lptn_model.feed_data(x,y)
             
-            psnr_test_iter,ssim_test_iter, lpips_test_iter,mssim_iter_test = lptn_model.optimize_parameters(iteration,mode='test')
+            psnr_test_iter,ssim_test_iter, lpips_test_iter,mssim_iter_test = lptn_model.optimize_parameters(iteration)
             # lptn_model.visualise(iteration=iteration)
             flag = 0
             
@@ -106,7 +106,7 @@ def eval(root_dir, lr,loss_weight = 2000,gan_type = 'lsgan' ,device='cuda', nrb_
             
             lptn_model.feed_data(x,y)
             
-            psnr_test_iter,ssim_test_iter, lpips_test_iter,mssim_iter_test = lptn_model.optimize_parameters(iteration,mode='test')
+            psnr_test_iter,ssim_test_iter, lpips_test_iter,mssim_iter_test = lptn_model.optimize_parameters(iteration)
             # lptn_model.visualise(iteration=iteration)
             flag = 0
             
@@ -148,7 +148,7 @@ def eval(root_dir, lr,loss_weight = 2000,gan_type = 'lsgan' ,device='cuda', nrb_
             
             lptn_model.feed_data(x,y)
             
-            psnr_test_iter,ssim_test_iter, lpips_test_iter,mssim_iter_test = lptn_model.optimize_parameters(iteration,mode='test')
+            psnr_test_iter,ssim_test_iter, lpips_test_iter,mssim_iter_test = lptn_model.optimize_parameters(iteration)
             # lptn_model.visualise(iteration=iteration)
             flag = 0
             
@@ -189,7 +189,7 @@ def eval(root_dir, lr,loss_weight = 2000,gan_type = 'lsgan' ,device='cuda', nrb_
             
             lptn_model.feed_data(x,y)
             
-            psnr_test_iter,ssim_test_iter, lpips_test_iter,mssim_iter_test = lptn_model.optimize_parameters(iteration,mode='test')
+            psnr_test_iter,ssim_test_iter, lpips_test_iter,mssim_iter_test = lptn_model.optimize_parameters(iteration)
            # lptn_model.visualise(iteration=iteration)
             flag = 0
             
