@@ -30,13 +30,22 @@ class Generator(BaseModel):
         disc = disc.to(self.device)
 
         # creating model object
-        model = Unet(
-            activation='tanh',
-            # encoder_name=encoder, 
-            encoder_weights='imagenet', 
-            in_channels=3,
-            classes=3
+        # model = Unet(
+        #     activation='tanh',
+        #     # encoder_name=encoder, 
+        #     encoder_weights='imagenet', 
+        #     in_channels=3,
+        #     classes=3
+        # )
+        import segmentation_models_pytorch as smp
+
+        model = smp.Unet(
+            encoder_name="resnet34",        # Use a ResNet backbone (e.g., resnet34, resnet50)
+            encoder_weights="imagenet",     # Load pretrained weights from ImageNet
+            in_channels=3,                  # RGB input
+            classes=3                       # Number of output classes (for multi-class segmentation)
         )
+        
         print(self.device)
         # using model as generator
         self.net_g = model.to(self.device)
