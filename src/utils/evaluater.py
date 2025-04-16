@@ -10,7 +10,7 @@ from .models.lptn_model import Generator
 # from torchsummary import summary
 
 
-def eval(root_dir, lr,loss_weight = 2000,gan_type = 'lsgan' ,device='cuda', nrb_top = 4, nrb_high = 5, nrb_low = 3,path='/kaggle/input/dlproj/best_model_g (2).pth'):
+def eval(root_dir, lr,loss_weight = 2000,gan_type = 'lsgan' ,device='cuda', nrb_top = 4, nrb_high = 5, nrb_low = 3,path='/kaggle/input/unet-model/best_model_g (3).pth'):
 
     testing_indices = [
         *range(4, 24), 28, 31, 33, 34, 
