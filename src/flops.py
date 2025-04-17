@@ -1,7 +1,7 @@
 import torchvision.models as models
 import torch
 from ptflops import get_model_complexity_info
-from utils.models.archs.LPTN_paper_arch import LPTNPaper
+from utils.models.archs.paper_arch import LPTNPaper
 
 
 net = LPTNPaper(nrb_low=4,

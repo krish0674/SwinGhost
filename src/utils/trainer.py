@@ -6,7 +6,7 @@ import albumentations as A
 import os
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import DataLoader, Subset
-from .models.lptn_model import Generator
+from .models.model import Generator
 
 import pandas as pd
 
